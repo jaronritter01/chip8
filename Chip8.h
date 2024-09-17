@@ -27,6 +27,12 @@ public:
 
     Chip8();
 
+    void OP_7xkk();
+
+    void OP_6xkk();
+
+    void OP_5xy0();
+
     void OP_4xkk();
 
     void OP_3xkk();

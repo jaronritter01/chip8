@@ -24,6 +24,50 @@ Chip8::Chip8() : randGen(std::chrono::system_clock::now().time_since_epoch().cou
     }
 }
 
+/**
+ * 7xkk - ADD Vx, byte
+ *
+ * Set Vx = Vx + kk
+ */
+void Chip8::OP_7xkk() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t byte = opcode & 0x00FFu;
+
+    registers[Vx] += byte;
+}
+
+/**
+ * 6xkk - LD Vx, byte
+ *
+ * Set Vx = kk.
+ */
+void Chip8::OP_6xkk() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t byte = opcode & 0x00FFu;
+
+    registers[Vx] = byte;
+}
+
+/**
+ * 5xy0 - SE Vx, Vy
+ *
+ * Skip next instruction if Vx = Vy.
+ */
+void Chip8::OP_5xy0() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vx] == registers[Vy])
+    {
+        pc += 2;
+    }
+}
+
+/**
+ * SNE Vx, byte
+ *
+ * Skip next instruction if Vx != kk.
+ */
 void Chip8::OP_4xkk() {
     // Bit mask to get register to check
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
@@ -36,6 +80,11 @@ void Chip8::OP_4xkk() {
     }
 }
 
+/**
+ * SE Vx, byte
+ *
+ * Skip next instruction if Vx = kk.
+ */
 void Chip8::OP_3xkk() {
     // Bit mask to get the bits from the second half of the first byte in the opcode, or register location of value to
     // check against
@@ -50,6 +99,11 @@ void Chip8::OP_3xkk() {
 
 }
 
+/**
+ * CALL addr
+ *
+ * Call subroutine at nnn.
+ */
 void Chip8::OP_2nnn() {
     // Get address location from instruction
     uint16_t address = opcode & 0x0FFFu;
@@ -60,13 +114,22 @@ void Chip8::OP_2nnn() {
     // Set the pc to the address we "call"
     pc = address;
 }
-
+/**
+ * JP addr
+ *
+ * Jump to location nnn.
+ */
 void Chip8::OP_1nnn() {
     // Bit mask to keep the lower 12 bits from opcode
     uint16_t address = opcode & 0x0FFFu;
     pc = address;
 }
 
+/**
+ * RET
+ *
+ * Return from a subroutine
+ */
 void Chip8::OP_00EE() {
     // Decrement stack pointer to last instruction
     --sp;
@@ -74,6 +137,11 @@ void Chip8::OP_00EE() {
     pc = stack[sp];
 }
 
+/**
+ * CLS
+ *
+ * Clear The Display
+ */
 void Chip8::OP_00E0() {
     // This is very c. Need to see if there is a better way to do this.
     memset(display, 0, sizeof(display));
