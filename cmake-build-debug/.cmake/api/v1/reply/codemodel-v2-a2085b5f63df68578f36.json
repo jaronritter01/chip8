@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/jaron/CLionProjects/chip8/cmake-build-debug",
-		"source" : "C:/Users/jaron/CLionProjects/chip8"
+		"build" : "C:/Users/jaron/OneDrive/Documents/projects/chip8/cmake-build-debug",
+		"source" : "C:/Users/jaron/OneDrive/Documents/projects/chip8"
 	},
 	"version" : 
 	{
