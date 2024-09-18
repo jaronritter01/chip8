@@ -24,6 +24,38 @@ Chip8::Chip8() : randGen(std::chrono::system_clock::now().time_since_epoch().cou
     }
 }
 
+void Chip8::OP_8xy2() {
+    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0) >> 4u;
+
+    registers[Vx] &= registers[Vy];
+}
+
+/**
+ * 8xy1 - OR Vx, Vy
+ *
+ * Set Vx = Vx OR Vy
+ */
+void Chip8::OP_8xy1() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    registers[Vx] |= registers[Vy];
+
+}
+
+/**
+ * 8xy0 - LD Vs, Vy
+ *
+ * Set Vx = Vy
+ */
+void Chip8::OP_8xy0() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    registers[Vx] = registers[Vy];
+}
+
 /**
  * 7xkk - ADD Vx, byte
  *
