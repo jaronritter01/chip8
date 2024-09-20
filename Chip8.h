@@ -27,6 +27,26 @@ public:
 
     Chip8();
 
+    void OP_Cxkk();
+
+    void OP_Bnnn();
+
+    void OP_Annn();
+
+    void OP_9xy0();
+
+    void OP_8xyE();
+
+    void OP_8xy7();
+
+    void OP_8xy6();
+
+    void OP_8xy5();
+
+    void OP_8xy4();
+
+    void OP_8xy3();
+
     void OP_8xy2();
 
     void OP_8xy1();

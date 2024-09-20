@@ -24,6 +24,175 @@ Chip8::Chip8() : randGen(std::chrono::system_clock::now().time_since_epoch().cou
     }
 }
 
+/**
+ * Cxkk - RND Vx, byte
+ *
+ * Set Vx = random byte AND kk.
+ */
+void Chip8::OP_Cxkk()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t byte = opcode & 0x00FFu;
+
+    registers[Vx] = randByte(randGen) & byte;
+}
+
+/**
+ * Bnnn - JP V0, addr
+ *
+ * Jump to location nnn + V0.
+ */
+void Chip8::OP_Bnnn()
+{
+    uint16_t address = opcode & 0x0FFFu;
+
+    pc = registers[0] + address;
+}
+
+/**
+ * Annn - LD I, addr
+ *
+ * Set I = nnn.
+ */
+void Chip8::OP_Annn()
+{
+    uint16_t address = opcode & 0x0FFFu;
+
+    index = address;
+}
+
+/**
+ * 9xy0 - SNE Vx, Vy
+ *
+ * Skip next instruction if Vx != Vy.
+ */
+void Chip8::OP_9xy0()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vx] != registers[Vy])
+    {
+        pc += 2;
+    }
+}
+
+/**
+ * 8xyE - SHL Vx {, Vy}
+ *
+ * Set Vx = Vx SHL 1.
+ */
+void Chip8::OP_8xyE()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    // Save MSB in VF
+    registers[0xF] = (registers[Vx] & 0x80u) >> 7u;
+
+    registers[Vx] <<= 1;
+}
+
+/**
+ * 8xy7 - SUBN Vx, Vy
+ * Nearly the same as the other sub function except the operands are switched.
+ */
+void Chip8::OP_8xy7()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vy] > registers[Vx])
+    {
+        registers[0xF] = 1;
+    }
+    else
+    {
+        registers[0xF] = 0;
+    }
+
+    registers[Vx] = registers[Vy] - registers[Vx];
+}
+
+/**
+ * 8xy6 - SHR Vx
+ *
+ * Set Vx = Vx SHR 1.
+ */
+void Chip8::OP_8xy6()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    // Save LSB in VF
+    registers[0xF] = (registers[Vx] & 0x1u);
+
+    registers[Vx] >>= 1;
+}
+
+/**
+ * 8xy5 - SUB Vx, Vy
+ *
+ * Set Vx = Vx - Vy, set VF = NOT borrow.
+ *
+ */
+void Chip8::OP_8xy5()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0u) >> 4u;
+
+    if (registers[Vx] > registers[Vy])
+    {
+        registers[0xF] = 1;
+    }
+    else
+    {
+        registers[0xF] = 0;
+    }
+
+    registers[Vx] -= registers[Vy];
+}
+
+/**
+ * 8xy4 - ADD Vx, Vy
+ *
+ * Set Vx = Vx + Vy, set VF = carry
+ */
+void Chip8::OP_8xy4() {
+    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0) >> 4u;
+
+    uint16_t sum = registers[Vx] + registers[Vy];
+
+    if (sum > 255U)
+    {
+        registers[0xF] = 1;
+    }
+    else
+    {
+        registers[0xF] = 0;
+    }
+
+    registers[Vx] = sum & 0xFFu;
+
+}
+
+/**
+ * 8xy3 - XOR Vx, Vy
+ *
+ * Set Vx = Vx XOR Vy
+ */
+void Chip8::OP_8xy3() {
+    uint8_t Vx = (opcode & 0x0F00) >> 8u;
+    uint8_t Vy = (opcode & 0x00F0) >> 4u;
+
+    registers[Vx] ^= registers[Vy];
+}
+
+
+/**
+ * 8xy2 - AND Vx, Vy
+ *
+ * Set Vx = Vx AND Vy
+ */
 void Chip8::OP_8xy2() {
     uint8_t Vx = (opcode & 0x0F00) >> 8u;
     uint8_t Vy = (opcode & 0x00F0) >> 4u;
