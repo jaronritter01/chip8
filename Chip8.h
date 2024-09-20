@@ -8,6 +8,10 @@
 #include <cstdint>
 #include <random>
 
+const unsigned int VIDEO_HEIGHT = 32;
+const unsigned int VIDEO_WIDTH = 64;
+
+
 
 class Chip8 {
 public:
@@ -20,12 +24,14 @@ public:
     uint8_t delayTimer{};
     uint8_t soundTimer{};
     uint8_t keys[16]{};
-    uint32_t display[64 * 32]{};
+    uint32_t display[VIDEO_WIDTH * VIDEO_HEIGHT]{};
     uint16_t opcode{};
     std::default_random_engine randGen;
     std::uniform_int_distribution<uint8_t> randByte;
 
     Chip8();
+
+    void OP_Dxyn();
 
     void OP_Cxkk();
 
