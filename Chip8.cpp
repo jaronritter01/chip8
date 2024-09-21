@@ -24,14 +24,214 @@ Chip8::Chip8() : randGen(std::chrono::system_clock::now().time_since_epoch().cou
     }
 }
 
+/**
+ * Fx65 - LD Vx, [I]
+ *
+ * Read registers V0 through Vx from memory starting at location I.
+ */
+void Chip8::OP_Fx65()
+{
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    for (uint8_t i = 0; i <= Vx; ++i)
+    {
+        registers[i] = memory[index + i];
+    }
+}
+
+/**
+ * Fx55 - LD [I], Vx
+ *
+ * Store registers V0 through Vx in memory starting at location I.
+ */
+void Chip8::OP_Fx55() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    for (uint8_t i = 0; i <= Vx; ++i)
+    {
+        memory[index + i] = registers[i];
+    }
+}
+
+/**
+ * Fx33 - LD B, Vx
+ *
+ * Store BCD representation of Vx in memory locations I, I+1, and I+2.
+ */
+void Chip8::OP_Fx33() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t value = registers[Vx];
+
+    // Ones-place
+    memory[index + 2] = value % 10;
+    value /= 10;
+
+    // Tens-place
+    memory[index + 1] = value % 10;
+    value /= 10;
+
+    // Hundreds-place
+    memory[index] = value % 10;
+}
+
+/**
+ * Fx29 - LD F, Vx
+ *
+ * Set I = location of sprite for digit Vx.
+ */
+void Chip8::OP_Fx29() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+    uint8_t digit = registers[Vx];
+
+    index = FONTSET_START_ADDRESS + (5 * digit);
+}
+
+/**
+ * Fx1E - ADD I, Vx
+ *
+ * Set I = I + Vx.
+ */
+void Chip8::OP_Fx1E() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    index += registers[Vx];
+}
+
+/**
+ * Fx18 - LD ST, Vx
+ *
+ * Set sound timer = Vx.
+ */
+void Chip8::OP_Fx18() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    soundTimer = registers[Vx];
+}
+
+/**
+ * Fx15 - LD DT, Vx
+ *
+ * Set delay timer = Vx.
+ */
+void Chip8::OP_Fx15() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    delayTimer = registers[Vx];
+}
+
+
+/**
+ * Fx0A - LD Vx, K
+ *
+ * Wait for a key press, store the value of the key in Vx.
+ */
+void Chip8::OP_Fx0A() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    if (keys[0]) {
+        registers[Vx] = 0;
+    }
+    else if (keys[1]) {
+        registers[Vx] = 1;
+    }
+    else if (keys[2]) {
+        registers[Vx] = 2;
+    }
+    else if (keys[3]) {
+        registers[Vx] = 3;
+    }
+    else if (keys[4]) {
+        registers[Vx] = 4;
+    }
+    else if (keys[5]) {
+        registers[Vx] = 5;
+    }
+    else if (keys[6]) {
+        registers[Vx] = 6;
+    }
+    else if (keys[7]) {
+        registers[Vx] = 7;
+    }
+    else if (keys[8]) {
+        registers[Vx] = 8;
+    }
+    else if (keys[9]) {
+        registers[Vx] = 9;
+    }
+    else if (keys[10]) {
+        registers[Vx] = 10;
+    }
+    else if (keys[11]) {
+        registers[Vx] = 11;
+    }
+    else if (keys[12]) {
+        registers[Vx] = 12;
+    }
+    else if (keys[13]) {
+        registers[Vx] = 13;
+    }
+    else if (keys[14]) {
+        registers[Vx] = 14;
+    }
+    else if (keys[15]) {
+        registers[Vx] = 15;
+    }
+    else {
+        pc -= 2;
+    }
+}
+
+/**
+ * Fx07 - LD Vx, DT
+ *
+ * Set Vx = delay timer value.
+ */
+void Chip8::OP_Fx07() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    registers[Vx] = delayTimer;
+}
+
+/**
+ * ExA1 - SKNP Vx
+ *
+ * Skip next instruction if key with the value of Vx is not pressed.
+ */
+void Chip8::OP_ExA1() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    uint8_t key = registers[Vx];
+
+    if (!keys[key])
+    {
+        pc += 2;
+    }
+}
+
+
+/**
+ * Ex9E - SKP Vx
+ *
+ * Skip next instruction if key with the value of Vx is pressed.
+ */
+void Chip8::OP_Ex9E() {
+    uint8_t Vx = (opcode & 0x0F00u) >> 8u;
+
+    uint8_t key = registers[Vx];
+
+    if (keys[key])
+    {
+        pc += 2;
+    }
+}
+
 
 /**
  * Dxyn - DRW Vx, Vy, nibble
  *
  * Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
  */
-void Chip8::OP_Dxyn()
-{
+void Chip8::OP_Dxyn() {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t Vy = (opcode & 0x00F0u) >> 4u;
     uint8_t height = opcode & 0x000Fu;
@@ -74,8 +274,7 @@ void Chip8::OP_Dxyn()
  *
  * Set Vx = random byte AND kk.
  */
-void Chip8::OP_Cxkk()
-{
+void Chip8::OP_Cxkk() {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t byte = opcode & 0x00FFu;
 
@@ -87,8 +286,7 @@ void Chip8::OP_Cxkk()
  *
  * Jump to location nnn + V0.
  */
-void Chip8::OP_Bnnn()
-{
+void Chip8::OP_Bnnn() {
     uint16_t address = opcode & 0x0FFFu;
 
     pc = registers[0] + address;
@@ -99,8 +297,7 @@ void Chip8::OP_Bnnn()
  *
  * Set I = nnn.
  */
-void Chip8::OP_Annn()
-{
+void Chip8::OP_Annn() {
     uint16_t address = opcode & 0x0FFFu;
 
     index = address;
@@ -111,8 +308,7 @@ void Chip8::OP_Annn()
  *
  * Skip next instruction if Vx != Vy.
  */
-void Chip8::OP_9xy0()
-{
+void Chip8::OP_9xy0() {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
@@ -127,8 +323,7 @@ void Chip8::OP_9xy0()
  *
  * Set Vx = Vx SHL 1.
  */
-void Chip8::OP_8xyE()
-{
+void Chip8::OP_8xyE() {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
     // Save MSB in VF
@@ -141,8 +336,7 @@ void Chip8::OP_8xyE()
  * 8xy7 - SUBN Vx, Vy
  * Nearly the same as the other sub function except the operands are switched.
  */
-void Chip8::OP_8xy7()
-{
+void Chip8::OP_8xy7() {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
@@ -163,8 +357,7 @@ void Chip8::OP_8xy7()
  *
  * Set Vx = Vx SHR 1.
  */
-void Chip8::OP_8xy6()
-{
+void Chip8::OP_8xy6() {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
 
     // Save LSB in VF
@@ -179,8 +372,7 @@ void Chip8::OP_8xy6()
  * Set Vx = Vx - Vy, set VF = NOT borrow.
  *
  */
-void Chip8::OP_8xy5()
-{
+void Chip8::OP_8xy5() {
     uint8_t Vx = (opcode & 0x0F00u) >> 8u;
     uint8_t Vy = (opcode & 0x00F0u) >> 4u;
 
